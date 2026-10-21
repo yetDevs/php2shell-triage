@@ -1,0 +1,11 @@
+# python
+__pycache__/
+*.py[cod]
+
+# scan output - may contain your infrastructure inventory, never commit it
+inv-*.json
+inv_*.json
+plesk-audit-*.txt
+post-patch.txt
+targets.txt
+*.log

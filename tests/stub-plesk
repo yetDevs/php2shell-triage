@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Stub `plesk` CLI emitting realistic Plesk Obsidian output, so
+# audit-plesk-php.sh can be exercised on a machine with no Plesk.
+case "$1 $2" in
+  "bin php_handler")
+    cat <<'EOF'
+id                    display name     full version   path                            type        cgi-bin
+cgi-fcgi-5.6          5.6.40           5.6.40         /usr/bin/php-cgi5.6             cgi
+fastcgi-7.4           7.4.33           7.4.33         /usr/bin/php-cgi7.4             fastcgi
+fpm-8.1               8.1.31           8.1.31         /usr/sbin/php-fpm8.1            fpm
+fastcgi-8.2           8.2.33           8.2.33         /usr/bin/php-cgi8.2             fastcgi
+fpm-8.4               8.4.26           8.4.26         /usr/sbin/php-fpm8.4            fpm
+EOF
+    ;;
+  "db -Ne")
+    # the per-domain override query has no rows on this fake server
+    case "$*" in *php_settings*) exit 0 ;; esac
+    printf 'legacy-blog.example.com\tcgi-fcgi-5.6\n'
+    printf 'shop.example.com\tfastcgi-8.2\n'
+    printf 'app.example.com\tfpm-8.4\n'
+    printf 'oldsite.example.com\tfastcgi-7.4\n'
+    ;;
+  *)
+    echo "stub: unhandled args: $*" >&2
+    exit 1
+    ;;
+esac

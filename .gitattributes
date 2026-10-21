@@ -1,0 +1,6 @@
+# These scripts run on Linux; CRLF would break the shebang and every `case`/`esac`.
+* text=auto eol=lf
+*.sh   text eol=lf
+*.py   text eol=lf
+*.yml  text eol=lf
+*.md   text eol=lf

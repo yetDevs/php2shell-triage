@@ -1,0 +1,70 @@
+title: PHP Worker Spawns Shell or Download Utility
+id: 8f3c1a52-2026-4d19-9b7e-php2shell0001
+status: experimental
+description: >
+  A PHP worker process (php-fpm, php-cgi, mod_php under httpd/apache2) spawning
+  an interactive shell, an interpreter, or a download utility. This is the
+  primary behavioural indicator for exploitation of PHP-core RCE bugs such as
+  CVE-2026-109618 / CVE-2026-109619, where the only way to convert the flaw
+  into code execution is for PHP to exec something.
+references:
+  - https://www.huntress.com/blog/php2shell-leaked-critical-php-vulnerabilities
+  - https://www.php.net/archive/2026.php
+author: php2shell-triage
+date: 2026/10/21
+tags:
+  - attack.execution
+  - attack.t1059
+  - attack.t1190
+logsource:
+  category: process_creation
+  product: linux
+detection:
+  php_parent:
+    ParentImage|endswith:
+      - '/php-fpm'
+      - '/php-fpm7.4'
+      - '/php-fpm8.1'
+      - '/php-fpm8.2'
+      - '/php-fpm8.3'
+      - '/php-fpm8.4'
+      - '/php-cgi'
+      - '/php'
+      - '/httpd'
+      - '/apache2'
+    # narrow to web-server-owned parents; adjust to your service accounts
+    ParentUser:
+      - www-data
+      - apache
+      - nginx
+      - httpd
+  suspicious_child:
+    Image|endswith:
+      - '/sh'
+      - '/bash'
+      - '/dash'
+      - '/zsh'
+      - '/curl'
+      - '/wget'
+      - '/nc'
+      - '/ncat'
+      - '/socat'
+      - '/python'
+      - '/python3'
+      - '/perl'
+      - '/mkfifo'
+      - '/base64'
+  condition: php_parent and suspicious_child
+falsepositives:
+  - Legitimate admin plugins or cron-ish features that shell out (some backup,
+    image-optimisation, and mail plugins do). Baseline for a week before
+    alerting, then whitelist specific full command lines - never the whole rule.
+  - Health-check scripts if you run them as the web user.
+level: high
+# --- Windows variant ---
+# Change logsource to `product: windows` and match
+# ParentImage endswith '\php-cgi.exe' or '\php.exe', with child images
+# '\cmd.exe', '\powershell.exe', '\certutil.exe', '\curl.exe'.
+#
+# Reverse-shell cmdline tells worth a separate, lower-noise rule:
+#   CommandLine|contains: '/dev/tcp/'  |  'mkfifo'  |  'fsockopen'
